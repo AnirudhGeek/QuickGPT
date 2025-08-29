@@ -1,18 +1,87 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
 
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-*{
+* {
   font-family: "Outfit", sans-serif;
 }
 
-@theme{
-  --color-primary: #E6CCFF;
+@theme {
+  --color-primary: #e6ccff;
 }
 
-::-webkit-scrollbar{
+::-webkit-scrollbar {
   display: none;
+}
+
+.reset-tw :not(pre):not(code) {
+  all: revert;
+}
+
+/* Add specific markdown styling to ensure proper formatting */
+.reset-tw h1,
+.reset-tw h2,
+.reset-tw h3,
+.reset-tw h4,
+.reset-tw h5,
+.reset-tw h6 {
+  font-weight: bold;
+  margin: 0.5em 0;
+}
+
+.reset-tw h1 {
+  font-size: 1.875rem;
+}
+.reset-tw h2 {
+  font-size: 1.5rem;
+}
+.reset-tw h3 {
+  font-size: 1.25rem;
+}
+
+.reset-tw p {
+  margin: 0.75em 0;
+  line-height: 1.6;
+}
+
+.reset-tw ul,
+.reset-tw ol {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+
+.reset-tw ul {
+  list-style-type: disc;
+}
+
+.reset-tw ol {
+  list-style-type: decimal;
+}
+
+.reset-tw li {
+  margin: 0.25em 0;
+}
+
+.reset-tw strong {
+  font-weight: bold;
+}
+
+.reset-tw em {
+  font-style: italic;
+}
+
+.reset-tw code {
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.reset-tw pre {
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  margin: 1rem 0;
 }
