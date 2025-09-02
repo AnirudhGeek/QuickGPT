@@ -2,11 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
 import Message from "./Message";
+import toast from "react-hot-toast";
 
 const ChatBox = () => {
   const containerRef = useRef(null);
 
-  const { selectedChat, theme } = useAppContext();
+  const { selectedChat, theme, user, axios, token, setUser } = useAppContext();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -15,7 +16,38 @@ const ChatBox = () => {
   const [isPublished, setIsPublished] = useState(false);
 
   const onSubmit = async (e) => {
-    e.preventDefault();
+    try {
+      e.preventDefault();
+      if (!user) return toast("Login to send message");
+      setLoading(true);
+      const promptCopy = prompt;
+      setPrompt("");
+      setMessages(prev => [...prev,{role: "user", content: prompt, timestamp: Date.now(), isImage: false}]);
+
+      const { data } = await axios.post(
+        `/api/message/${mode}`,
+        { chatId: selectedChat._id, prompt, isPublished },
+        { headers: { Authorization: token } }
+      );
+      if (data.success) {
+        setMessages((prev) => [...prev, data.reply]);
+
+        //decrease credits
+        if (mode === "image") {
+          setUser(prev => ({ ...prev, credits: prev.credits - 2 }));
+        } else {
+          setUser((prev) => ({ ...prev, credits: prev.credits - 1 }));
+        }
+      } else {
+        toast.error(data.message);
+        setPrompt(promptCopy);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setPrompt("");
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -54,19 +86,27 @@ const ChatBox = () => {
           <Message key={index} message={message} />
         ))}
 
-        {/* Three Dots Loading */}
+        {/* Three Dots Loading - Aligned to left like AI messages */}
         {loading && (
-          <div className="loader flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"></div>
+          <div className="flex items-start my-4">
+            <div className="loader flex items-center gap-1.5 p-2 px-4 bg-primary/20 dark:bg-[#57317C]/30 border border-[#80609F]/30 rounded-md">
+              <div className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"></div>
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"
+                style={{ animationDelay: "0.1s" }}
+              ></div>
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-gray-500 dark:bg-white animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+            </div>
           </div>
         )}
       </div>
 
       {mode === "image" && (
         <label className="inline-flex items-center gap-2 mb-3 text-sm mx-auto">
-          <p className="text-xs">Publish Generated Image to Communitu</p>
+          <p className="text-xs">Publish Generated Image to Community</p>
           <input
             type="checkbox"
             className="cursor-pointer"
@@ -84,7 +124,7 @@ const ChatBox = () => {
         <select
           onChange={(e) => setMode(e.target.value)}
           value={mode}
-          className="text-sm pl-3 pr-2 outline-none"
+          className="text-sm pl-3 pr-2 outline-none bg-transparent dark:text-white"
         >
           <option className="dark:bg-purple-900" value="text">
             Text
@@ -98,10 +138,10 @@ const ChatBox = () => {
           value={prompt}
           type="text"
           placeholder="Type your prompt here..."
-          className="flex-1 w-full text-sm outline-none"
+          className="flex-1 w-full text-sm outline-none bg-transparent dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
           required
         />
-        <button disabled={loading}>
+        <button disabled={loading} type="submit">
           {/* when the loading is true this button is disabled */}
           <img
             src={loading ? assets.stop_icon : assets.send_icon}

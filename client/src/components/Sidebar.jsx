@@ -1,11 +1,53 @@
 import React, { useState } from "react";
 import { useAppContext } from "../context/AppContext";
 import { assets } from "../assets/assets";
+import toast from "react-hot-toast";
 
 const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
-  const { chats, setSelectedChat, theme, setTheme, user, navigate } =
-    useAppContext();
+  const {
+    chats,
+    setSelectedChat,
+    theme,
+    setTheme,
+    user,
+    navigate,
+    createNewChat,
+    axios,
+    setChats,
+    fetchUsersChats,
+    setToken,
+    token
+  } = useAppContext();
   const [search, setSearch] = useState("");
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    toast.success("Logged out successfully");
+  };
+
+  //function for deleting chat
+  const deleteChat = async (e, chatId) => {
+    try {
+      e.stopPropagation();
+      const confirm = window.confirm(
+        "Are you sure you want to delete this chat?"
+      );
+      if (!confirm) return;
+      const { data } = await axios.post(
+        "/api/chat/delete",
+        { chatId },
+        { headers: { Authorization: token } }
+      );
+      if (data.success) {
+        setChats((prev) => prev.filter((chat) => chat._id !== chatId));
+        await fetchUsersChats();
+        toast.success("data.message");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <>
@@ -16,14 +58,15 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
           onClick={() => setIsMenuOpen(false)}
         />
       )}
-      
+
       {/* Sidebar */}
-      <div className={`flex flex-col h-screen bg-white dark:bg-gradient-to-b dark:from-[#242124] dark:to-[#000000] border-r border-gray-200 dark:border-[#80609F]/30 backdrop-blur-3xl transition-all duration-300 ease-in-out
+      <div
+        className={`flex flex-col h-screen bg-white dark:bg-gradient-to-b dark:from-[#242124] dark:to-[#000000] border-r border-gray-200 dark:border-[#80609F]/30 backdrop-blur-3xl transition-all duration-300 ease-in-out
         md:min-w-72 md:p-5 md:relative md:translate-x-0
         max-md:fixed max-md:top-0 max-md:left-0 max-md:w-full max-md:p-4 max-md:z-50
-        ${isMenuOpen ? 'max-md:translate-x-0' : 'max-md:-translate-x-full'}
-      `}>
-        
+        ${isMenuOpen ? "max-md:translate-x-0" : "max-md:-translate-x-full"}
+      `}
+      >
         {/* Logo */}
         <div className="mb-6 pr-10 md:pr-0">
           <img
@@ -34,10 +77,7 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
         </div>
 
         {/* New Chat Button */}
-        <button 
-          
-          className="flex justify-center items-center w-full py-3 mb-6 text-white bg-gradient-to-r from-[#A456F7] to-[#3D81F6] text-sm font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 active:scale-95"
-        >
+        <button onClick={createNewChat} className="flex justify-center items-center w-full py-3 mb-6 text-white bg-gradient-to-r from-[#A456F7] to-[#3D81F6] text-sm font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 active:scale-95">
           <span className="mr-2 text-lg font-bold">+</span>
           New Chat
         </button>
@@ -76,14 +116,12 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
               )
               .map((chat) => (
                 <div
-                
                   key={chat._id}
-                  onClick={()=>{
-                    navigate('/');
+                  onClick={() => {
+                    navigate("/");
                     setSelectedChat(chat);
-                    setIsMenuOpen(false)
-                  }
-                  }
+                    setIsMenuOpen(false);
+                  }}
                   className="group p-3 bg-gray-50 dark:bg-[#57317C]/10 border border-gray-200 dark:border-[#80609F]/15 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-[#57317C]/20 transition-all duration-200 flex justify-between items-start"
                 >
                   <div className="flex-1 min-w-0">
@@ -97,8 +135,13 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
                     </p>
                   </div>
                   <img
+                    onClick={(e) =>
+                      toast.promise(deleteChat(e, chat._id), {
+                        loading: "deleting...",
+                      })
+                    }
                     src={assets.bin_icon}
-                    className="w-4 h-4 opacity-0 group-hover:opacity-100 cursor-pointer dark:invert transition-opacity ml-2 flex-shrink-0"
+                    className="w-4 h-4 opacity-0 group-hover:opacity-100 cursor-pointer not-dark:invert dark:invert-0 transition-opacity ml-2 flex-shrink-0"
                     alt="Delete"
                   />
                 </div>
@@ -112,7 +155,7 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
           <div
             onClick={() => {
               navigate("/community");
-              setIsMenuOpen(false)
+              setIsMenuOpen(false);
             }}
             className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-white/15 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-105 transition-all duration-200"
           >
@@ -131,8 +174,8 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
           {/* Credit Purchase Option */}
           <div
             onClick={() => {
-              navigate('/credit');
-              setIsMenuOpen(false)
+              navigate("/credit");
+              setIsMenuOpen(false);
             }}
             className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-white/15 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-105 transition-all duration-200"
           >
@@ -188,6 +231,7 @@ const Sidebar = ({ isMenuOpen, setIsMenuOpen }) => {
           </p>
           {user && (
             <img
+              onClick={logout}
               src={assets.logout_icon}
               className="h-5 cursor-pointer opacity-0 group-hover:opacity-100 not-dark:invert transition-opacity"
               alt="Logout"
